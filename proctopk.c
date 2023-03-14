@@ -10,6 +10,7 @@
 #include <sys/wait.h>
 
 #define MAX_WORD_SIZE 64
+#define MAX_NO_OF_WORDS 1000
 
 typedef struct {
     char word[MAX_WORD_SIZE];
@@ -29,7 +30,61 @@ void toUpperCase(char* str) {
 }
 
 void processFile(char* fileName, void *shmPosition, int k) {
+    FILE* filePtr;
+    filePtr = fopen(fileName, "r");
 
+    if(filePtr == NULL)
+    {
+        printf("File cannot be opened: %s\n", fileName);
+        exit(1);
+    }
+
+    char words[MAX_NO_OF_WORDS][MAX_WORD_SIZE];
+    int numberOfWords = 0;
+    WordCount wordAccess[MAX_NO_OF_WORDS]; // for accessing the word we currently read
+    char currentWord[MAX_WORD_SIZE];
+
+    while(fscanf(filePtr, "%s", currentWord) != EOF)
+    {
+        for(int i = 0; i < strlen(currentWord); i++)
+        {
+            currentWord[i] = toupper(currentWord[i]); // make all the words upper case
+        }
+
+        for(int i = 0; i < strlen(currentWord); i++)
+        {
+            for(int j = 0; j < sizeof(wordAccess)/sizeof(wordAccess[0]); j++)
+            {
+                wordAccess[j].word[i] = currentWord[i]; // put the words in wordAccess array 
+            }
+        }
+
+        int hasCounted = 0;
+
+        for(int i = 0; i < numberOfWords; i++)
+        {
+            for(int j = 0; j < sizeof(wordAccess)/sizeof(wordAccess[0]); j++)
+            {
+                if(strcmp(wordAccess[j].word, words[i]) == 0)
+                {
+                    wordAccess[j].countNum++;
+                    hasCounted = 1;
+                    break;
+                }
+            }
+        }
+
+        if(hasCounted == 0)
+        {
+            for(int i = 0; i < sizeof(wordAccess)/sizeof(wordAccess[0]); i++)
+            {
+                strncpy(words[numberOfWords], wordAccess[i].word, MAX_WORD_SIZE);
+                wordAccess[i].countNum = 1;
+            }
+            numberOfWords++;
+        }
+
+    }
 }
 
 int main(int argc, char *argv[]){
