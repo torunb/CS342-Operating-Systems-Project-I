@@ -33,7 +33,7 @@ void processFile(char* fileName, void *shmPosition, int k) {
 }
 
 int main(int argc, char *argv[]){
-    pid_t n;
+    pid_t pid_n;
     /* number of highest frequency words to be found in a file */
     int k;
     /* name of the output file */
@@ -74,16 +74,17 @@ int main(int argc, char *argv[]){
     }
 
     for(int fileNum = 0; fileNum < numOfInputFiles; fileNum++){
-        n = fork();
-        if (n < 0) {
+        pid_n = fork();
+        if (pid_n < 0) {
             exit(1); 
         }
-        if( n == 0) {
+        if( pid_n == 0) {
             void* shmPosition = shmStart;
             if(fileNum != 0){
                 shmPosition += fileNum + k; 
             }
-            ///processFile();
+            char* fileName = (char*) (inputFileNames + fileNum);
+            processFile(fileName, shmPosition, k);
             exit(0);
         }
     }
