@@ -51,13 +51,12 @@ void processFile(char* fileName, void *shmPosition, int k) {
             currentWord[i] = toupper(currentWord[i]); // make all the words upper case
         }
 
-        for(int i = 0; i < strlen(currentWord); i++)
+        
+        for(int j = 0; j < sizeof(wordAccess)/sizeof(wordAccess[0]); j++)
         {
-            for(int j = 0; j < sizeof(wordAccess)/sizeof(wordAccess[0]); j++)
-            {
-                wordAccess[j].word[i] = currentWord[i]; // put the words in wordAccess array 
-            }
+            strncpy(wordAccess[j].word, currentWord, MAX_WORD_SIZE); // put the words in wordAccess array 
         }
+        
 
         int hasCounted = 0;
 
