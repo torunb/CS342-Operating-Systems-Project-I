@@ -33,7 +33,7 @@ int compareWordCountFreq(const WordCount* wordCount1, const WordCount* wordCount
     return wordCount1->countNum - wordCount2->countNum;
 }
 
-void processFile(char* fileName, void *shmPosition, int k) {
+void processFile(char* fileName, WordCount *shmPosition, int k) {
     FILE* filePtr;
     filePtr = fopen(fileName, "r");
 
@@ -78,7 +78,11 @@ void processFile(char* fileName, void *shmPosition, int k) {
     /* sort the word accessed struct array */
     qsort(wordsAccessed,numberOfWords,sizeof(WordCount),compareWordCountFreq);
 
-    
+    /* write the top-k words into the shared memory */
+    for(int wordIndex = 0; wordIndex < k; wordIndex++){
+        shmPosition += wordIndex; 
+        memcpy(shmPosition, &wordsAccessed[wordIndex], sizeof(WordCount));
+    }
 }
 
 int main(int argc, char *argv[]){
@@ -128,7 +132,7 @@ int main(int argc, char *argv[]){
             exit(1); 
         }
         if( pid_n == 0) {
-            void* shmPosition = shmStart;
+            WordCount* shmPosition = shmStart;
             if(fileNum != 0){
                 shmPosition += fileNum + k; 
             }
