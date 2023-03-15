@@ -1,0 +1,1 @@
+r 2 out.txt 3 in1.txt in2.txt in3.txt

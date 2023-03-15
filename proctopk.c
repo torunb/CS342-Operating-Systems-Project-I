@@ -6,10 +6,10 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/shm.h>
 #include <sys/mman.h>
 #include <sys/wait.h>
 #include <ctype.h>
-#
 
 #define MAX_WORD_SIZE 64
 #define MAX_NO_OF_WORDS 1000
@@ -58,6 +58,9 @@ void processFile(char* fileName, WordCount *shmPosition, int k) {
         {
             currentWord[i] = toupper(currentWord[i]); // make all the words upper case
         }
+
+        printf(currentWord, "%s \n");
+        printf(" ");
 
         for(int scannedWordIndex= 0; scannedWordIndex < numberOfWords; scannedWordIndex++ ){
             if(strcmp(wordsAccessed[scannedWordIndex].word, currentWord) == 0) {
@@ -109,6 +112,7 @@ int main(int argc, char *argv[]){
     outfile = argv[2];
     numOfInputFiles = atoi(argv[3]);
     inputFileNames = &argv[4];
+    shmName = "shmName";
 
     /*create a shared memory segment*/
     shmFd = shm_open(shmName, O_RDWR | O_CREAT, 0666);
@@ -170,8 +174,6 @@ int main(int argc, char *argv[]){
     qsort(wordsProcessed, wordsProcessedNum,sizeof(WordCount),compareWordCountFreq);
 
     FILE* out = fopen(outfile, "w");
-
-    char word[MAX_WORD_SIZE] ; 
 
     for(int i = 0; i < k; i++){
         fprintf(out, "%s", wordsProcessed[i].word);
