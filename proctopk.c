@@ -11,6 +11,7 @@
 
 #define MAX_WORD_SIZE 64
 #define MAX_NO_OF_WORDS 1000
+#define MAX_NO_OF_FILES 10
 
 typedef struct {
     char word[MAX_WORD_SIZE];
@@ -22,15 +23,8 @@ char** inputFileNames;
 /* name of the shared memory */
 char* shmName;
 
-
-void toUpperCase(char* str) {
-    for(int i = 0; str[i] != '\0'; i++){
-        str[i] = str[i] - 32;
-    }
-}
-
 int compareWordCountFreq(const WordCount* wordCount1, const WordCount* wordCount2){
-    return wordCount1->countNum - wordCount2->countNum;
+    return wordCount2->countNum - wordCount1->countNum;
 }
 
 void processFile(char* fileName, WordCount *shmPosition, int k) {
@@ -56,7 +50,10 @@ void processFile(char* fileName, WordCount *shmPosition, int k) {
         int isPreviouslyScanned = 0;
 
         /* convert word to all upper case */
-        toUpperCase(currentWord);
+         for(int i = 0; i < strlen(currentWord); i++)
+        {
+            currentWord[i] = toupper(currentWord[i]); // make all the words upper case
+        }
 
         for(int scannedWordIndex= 0; scannedWordIndex < numberOfWords; scannedWordIndex++ ){
             if(strcmp(wordsAccessed[scannedWordIndex].word, currentWord) == 0) {
@@ -75,7 +72,7 @@ void processFile(char* fileName, WordCount *shmPosition, int k) {
         }
     }
 
-    /* sort the word accessed struct array */
+    /* sort the word accessed struct array in descending order */
     qsort(wordsAccessed,numberOfWords,sizeof(WordCount),compareWordCountFreq);
 
     /* write the top-k words into the shared memory */
@@ -116,7 +113,7 @@ int main(int argc, char *argv[]){
     }
 
     /*set the size of the shared memory*/
-    shmSize = k * numOfInputFiles * sizeof(WordCount);
+    shmSize = k * numOfInputFiles * sizeof(WordCount); 
     ftruncate(shmFd, shmSize);
 
     /* map the shared memory into the address space of the parent process */
@@ -132,15 +129,56 @@ int main(int argc, char *argv[]){
             exit(1); 
         }
         if( pid_n == 0) {
-            WordCount* shmPosition = shmStart;
-            if(fileNum != 0){
-                shmPosition += fileNum + k; 
-            }
-            char* fileName = (char*) (inputFileNames + fileNum);
+            WordCount* shmPosition = shmStart + (k * fileNum);
+            char* fileName = inputFileNames[fileNum];
             processFile(fileName, shmPosition, k);
             exit(0);
         }
     }
-    //parent process
+    
+    //wait all child processes to terminate
+    for(int i = 0; i < numOfInputFiles; i++){
+        wait(NULL);
+    }
 
+    int wordsProcessedSize = MAX_NO_OF_FILES * MAX_NO_OF_WORDS; 
+    WordCount wordsProcessed[wordsProcessedSize];
+    int wordsProcessedNum = 0;
+    WordCount* shmPosition = shmStart;
+
+    for(int procWordIndex = 0; procWordIndex < (numOfInputFiles * k); procWordIndex++){
+        int isWordExist = 0;
+        shmPosition += procWordIndex;
+        for(int j = 0; j < wordsProcessedNum; j++){
+            if(strcmp(shmPosition->word,wordsProcessed[j].word) == 0){
+                isWordExist = 1;
+                wordsProcessed[j].countNum += shmPosition->countNum;
+                break;
+            }
+        }
+        if(isWordExist == 0) {
+            memcpy(&wordsProcessed[procWordIndex], shmPosition, sizeof(WordCount));
+            wordsProcessedNum++;
+        }
+    }
+
+    /* sort the words processed struct array in descending order */
+    qsort(wordsProcessed, wordsProcessedNum,sizeof(WordCount),compareWordCountFreq);
+
+    FILE* out = fopen(outfile, "w");
+
+    char word[MAX_WORD_SIZE] ; 
+
+    for(int i = 0; i < k; i++){
+        fprintf(out, "%s", wordsProcessed[i].word);
+        fprintf(out, " %d\n", wordsProcessed[i].countNum);
+    }
+
+    fclose(out);
+
+    close(shmFd);
+    shm_unlink(shmName);
+
+    exit(0);
+    return(0);
 }
