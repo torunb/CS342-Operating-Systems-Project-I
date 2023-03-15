@@ -81,8 +81,8 @@ void processFile(char* fileName, WordCount *shmPosition, int k) {
 
     /* write the top-k words into the shared memory */
     for(int wordIndex = 0; wordIndex < k; wordIndex++){
-        shmPosition += wordIndex;
-        memcpy(shmPosition, &wordsAccessed[wordIndex], sizeof(WordCount));
+        memcpy(&shmPosition[wordIndex], &wordsAccessed[wordIndex], sizeof(WordCount));
+        printf("Shared Memory Write -> Address: %p, Word: %s, Count: %d\n", &shmPosition[wordIndex], shmPosition[wordIndex].word, shmPosition[wordIndex].countNum);
     }
 }
 
@@ -99,7 +99,7 @@ int main(int argc, char *argv[]){
     /* size of the shared memory size */
     size_t shmSize;
     /* pointer to the shared memory object */
-    WordCount *shmStart; 
+    void *shmStart; 
 
     /* extractring the command line arguments */
     if (argc < 5){
@@ -122,8 +122,8 @@ int main(int argc, char *argv[]){
     ftruncate(shmFd, shmSize);
 
     /* map the shared memory into the address space of the parent process */
-    shmStart = (WordCount*) mmap(0, shmSize, PROT_READ | PROT_WRITE, 
-                    MAP_SHARED, shmFd, 0);
+    shmStart = mmap(0, shmSize, PROT_READ | PROT_WRITE, MAP_SHARED, shmFd, 0);
+
     if(shmStart < 0) {
         exit(1);
     }
@@ -134,8 +134,9 @@ int main(int argc, char *argv[]){
             exit(1); 
         }
         if( pid_n == 0) {
+            WordCount* shmChildProcess = (WordCount*) shmStart;
             char* fileName = inputFileNames[fileNum];
-            processFile(fileName, &shmStart[k * fileNum], k);
+            processFile(fileName, &shmChildProcess[k * fileNum], k);
             exit(0);
         }
     }
@@ -149,24 +150,27 @@ int main(int argc, char *argv[]){
     WordCount wordsProcessed[wordsProcessedSize];
     int wordsProcessedNum = 0;
 
+    WordCount* shmStartPosition = (WordCount*) shmStart;
+
     for(int procWordIndex = 0; procWordIndex < wordsProcessedSize; procWordIndex++){
+        printf("Shared Memory Read -> Address: %p, Word: %s, Count: %d\n", &shmStartPosition[procWordIndex], shmStartPosition[procWordIndex].word, shmStartPosition[procWordIndex].countNum);
         int isWordExist = 0;
 
         for(int j = 0; j < wordsProcessedNum; j++){
-            if(strcmp(shmStart[procWordIndex].word,wordsProcessed[j].word) == 0){
+            if(strcmp(shmStartPosition[procWordIndex].word,wordsProcessed[j].word) == 0){
                 isWordExist = 1;
-                wordsProcessed[j].countNum += shmStart[procWordIndex].countNum;
+                wordsProcessed[j].countNum += shmStartPosition[procWordIndex].countNum;
                 break;
             }
         }
         if(isWordExist == 0) {
-            memcpy(&wordsProcessed[procWordIndex], &shmStart[procWordIndex], sizeof(WordCount));
+            memcpy(&wordsProcessed[wordsProcessedNum], &shmStartPosition[procWordIndex], sizeof(WordCount));
             wordsProcessedNum++;
         }
     }
 
     /* sort the words processed struct array in descending order */
-    qsort(wordsProcessed, wordsProcessedNum,sizeof(WordCount),compareWordCountFreq);
+    qsort(wordsProcessed,wordsProcessedNum,sizeof(WordCount),compareWordCountFreq);
 
     FILE* out = fopen(outfile, "w");
 
