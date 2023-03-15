@@ -59,9 +59,6 @@ void processFile(char* fileName, WordCount *shmPosition, int k) {
             currentWord[i] = toupper(currentWord[i]); // make all the words upper case
         }
 
-        printf(currentWord, "%s \n");
-        printf(" ");
-
         for(int scannedWordIndex= 0; scannedWordIndex < numberOfWords; scannedWordIndex++ ){
             if(strcmp(wordsAccessed[scannedWordIndex].word, currentWord) == 0) {
                 wordsAccessed[scannedWordIndex].countNum++;
@@ -84,7 +81,7 @@ void processFile(char* fileName, WordCount *shmPosition, int k) {
 
     /* write the top-k words into the shared memory */
     for(int wordIndex = 0; wordIndex < k; wordIndex++){
-        shmPosition += wordIndex; 
+        shmPosition += wordIndex;
         memcpy(shmPosition, &wordsAccessed[wordIndex], sizeof(WordCount));
     }
 }
@@ -137,9 +134,8 @@ int main(int argc, char *argv[]){
             exit(1); 
         }
         if( pid_n == 0) {
-            WordCount* shmPosition = shmStart + (k * fileNum);
             char* fileName = inputFileNames[fileNum];
-            processFile(fileName, shmPosition, k);
+            processFile(fileName, &shmStart[k * fileNum], k);
             exit(0);
         }
     }
@@ -149,23 +145,22 @@ int main(int argc, char *argv[]){
         wait(NULL);
     }
 
-    int wordsProcessedSize = MAX_NO_OF_FILES * MAX_NO_OF_WORDS; 
+    int wordsProcessedSize = numOfInputFiles * k; 
     WordCount wordsProcessed[wordsProcessedSize];
     int wordsProcessedNum = 0;
-    WordCount* shmPosition = shmStart;
 
-    for(int procWordIndex = 0; procWordIndex < (numOfInputFiles * k); procWordIndex++){
+    for(int procWordIndex = 0; procWordIndex < wordsProcessedSize; procWordIndex++){
         int isWordExist = 0;
-        shmPosition += procWordIndex;
+
         for(int j = 0; j < wordsProcessedNum; j++){
-            if(strcmp(shmPosition->word,wordsProcessed[j].word) == 0){
+            if(strcmp(shmStart[procWordIndex].word,wordsProcessed[j].word) == 0){
                 isWordExist = 1;
-                wordsProcessed[j].countNum += shmPosition->countNum;
+                wordsProcessed[j].countNum += shmStart[procWordIndex].countNum;
                 break;
             }
         }
         if(isWordExist == 0) {
-            memcpy(&wordsProcessed[procWordIndex], shmPosition, sizeof(WordCount));
+            memcpy(&wordsProcessed[procWordIndex], &shmStart[procWordIndex], sizeof(WordCount));
             wordsProcessedNum++;
         }
     }
