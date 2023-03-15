@@ -29,6 +29,10 @@ void toUpperCase(char* str) {
     }
 }
 
+int compareWordCountFreq(const WordCount* wordCount1, const WordCount* wordCount2){
+    return wordCount1->countNum - wordCount2->countNum;
+}
+
 void processFile(char* fileName, void *shmPosition, int k) {
     FILE* filePtr;
     filePtr = fopen(fileName, "r");
@@ -39,51 +43,42 @@ void processFile(char* fileName, void *shmPosition, int k) {
         exit(1);
     }
 
-    char words[MAX_NO_OF_WORDS][MAX_WORD_SIZE];
+    /* the scanned words and their frequencies */
+    WordCount wordsAccessed[MAX_NO_OF_WORDS];
     int numberOfWords = 0;
-    WordCount wordAccess[MAX_NO_OF_WORDS]; // for accessing the word we currently read
+
+    /* the word that is currently scanned */
     char currentWord[MAX_WORD_SIZE];
 
     while(fscanf(filePtr, "%s", currentWord) != EOF)
     {
-        for(int i = 0; i < strlen(currentWord); i++)
-        {
-            currentWord[i] = toupper(currentWord[i]); // make all the words upper case
-        }
+        /* the boolean that checks whether the word is previously scanned */
+        int isPreviouslyScanned = 0;
 
-        
-        for(int j = 0; j < sizeof(wordAccess)/sizeof(wordAccess[0]); j++)
-        {
-            strncpy(wordAccess[j].word, currentWord, MAX_WORD_SIZE); // put the words in wordAccess array 
-        }
-        
+        /* convert word to all upper case */
+        toUpperCase(currentWord);
 
-        int hasCounted = 0;
-
-        for(int i = 0; i < numberOfWords; i++)
-        {
-            for(int j = 0; j < sizeof(wordAccess)/sizeof(wordAccess[0]); j++)
-            {
-                if(strcmp(wordAccess[j].word, words[i]) == 0)
-                {
-                    wordAccess[j].countNum++;
-                    hasCounted = 1;
-                    break;
-                }
+        for(int scannedWordIndex= 0; scannedWordIndex < numberOfWords; scannedWordIndex++ ){
+            if(strcmp(wordsAccessed[scannedWordIndex].word, currentWord) == 0) {
+                wordsAccessed[scannedWordIndex].countNum++;
+                isPreviouslyScanned = 1;
+                break;
             }
         }
 
-        if(hasCounted == 0)
-        {
-            for(int i = 0; i < sizeof(wordAccess)/sizeof(wordAccess[0]); i++)
-            {
-                strncpy(words[numberOfWords], wordAccess[i].word, MAX_WORD_SIZE);
-                wordAccess[i].countNum = 1;
-            }
+        if(isPreviouslyScanned == 0){
+            WordCount wordNew; 
+            strcpy(wordNew.word, currentWord);
+            wordNew.countNum = 1;
+            wordsAccessed[numberOfWords] = wordNew;
             numberOfWords++;
         }
-
     }
+
+    /* sort the word accessed struct array */
+    qsort(wordsAccessed,numberOfWords,sizeof(WordCount),compareWordCountFreq);
+
+    
 }
 
 int main(int argc, char *argv[]){
