@@ -8,6 +8,8 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/wait.h>
+#include <ctype.h>
+#
 
 #define MAX_WORD_SIZE 64
 #define MAX_NO_OF_WORDS 1000
@@ -23,8 +25,10 @@ char** inputFileNames;
 /* name of the shared memory */
 char* shmName;
 
-int compareWordCountFreq(const WordCount* wordCount1, const WordCount* wordCount2){
-    return wordCount2->countNum - wordCount1->countNum;
+int compareWordCountFreq(const void* wordCount1, const void* wordCount2){
+    const WordCount* word1 = (const WordCount*) wordCount1;
+    const WordCount* word2 = (const WordCount*) wordCount2;
+    return word2->countNum - word1->countNum;
 }
 
 void processFile(char* fileName, WordCount *shmPosition, int k) {
