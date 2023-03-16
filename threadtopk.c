@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <string.h>
+#include <ctype.h>
 
 #define MAX_WORD_SIZE 64
 #define MAX_NO_OF_WORDS 1000
@@ -17,6 +18,8 @@ typedef struct {
     char word[MAX_WORD_SIZE];
     int countNum;
 } WordCount;
+
+WordCount **resultsPointer;
 
 struct arg {
     /* name of the file that is processed */
@@ -36,6 +39,8 @@ int compareWordCountFreq(const void* wordCount1, const void* wordCount2){
 /* The function to be executed concurrently by all the threads */
 static void *processFile(void *arg_ptr)
 {
+    int t_index = ((struct arg *) arg_ptr)->t_index;
+    int k = ((struct arg *) arg_ptr)->k;
     FILE* filePtr;
     filePtr = fopen(((struct arg *) arg_ptr)->fileName, "r");
 
@@ -44,45 +49,51 @@ static void *processFile(void *arg_ptr)
         exit(1);
     }
 
-    char* currentWord[MAX_WORD_SIZE];
-    WordCount wordAccessed[MAX_NO_OF_WORDS]; 
+    /* the scanned words and their frequencies */
+    WordCount wordsAccessed[MAX_NO_OF_WORDS];
     int numberOfWords = 0;
+
+    /* the word that is currently scanned */
+    char currentWord[MAX_WORD_SIZE];
 
     while(fscanf(filePtr, "%s", currentWord) != EOF)
     {
-        int isScanned = 0;
+        /* the boolean that checks whether the word is previously scanned */
+        int isPreviouslyScanned = 0;
 
-        for(int i = 0; i < strlen(currentWord); i++)
+        /* convert word to all upper case */
+         for(int i = 0; i < strlen(currentWord); i++)
         {
-            currentWord[i] = toupper(currentWord[i]);
+            currentWord[i] = toupper(currentWord[i]); // make all the words upper case
         }
 
-        for(int i = 0; i < numberOfWords; i++)
-        {
-            if(strcmp(wordAccessed[i].word, currentWord) == 0)
-            {
-                wordAccessed[i].countNum++;
-                isScanned = 1;
+        for(int scannedWordIndex= 0; scannedWordIndex < numberOfWords; scannedWordIndex++ ){
+            if(strcmp(wordsAccessed[scannedWordIndex].word, currentWord) == 0) {
+                wordsAccessed[scannedWordIndex].countNum++;
+                isPreviouslyScanned = 1;
                 break;
             }
         }
 
-        if(isScanned == 0)
-        {
-            WordCount newWord;
-            strcpy(newWord.word, currentWord);
-            newWord.countNum = 1;
-            wordAccessed[numberOfWords] = newWord;
+        if(isPreviouslyScanned == 0){
+            WordCount wordNew; 
+            strcpy(wordNew.word, currentWord);
+            wordNew.countNum = 1;
+            wordsAccessed[numberOfWords] = wordNew;
             numberOfWords++;
-        }        
+        }
     }
 
-    qsort(wordAccessed,numberOfWords,sizeof(WordCount),compareWordCountFreq);
+    /* sort the word accessed struct array in descending order */
+    qsort(wordsAccessed,numberOfWords,sizeof(WordCount),compareWordCountFreq);
 
-    // for(int wordIndex = 0; wordIndex < k; wordIndex++){
-    //     shmPosition += wordIndex; 
-    //     memcpy(shmPosition, &wordsAccessed[wordIndex], sizeof(WordCount));
-    // }
+    /* write the top-k words into the shared memory */
+    for(int wordIndex = 0; wordIndex < k; wordIndex++){
+        memcpy(&resultsPointer[t_index][wordIndex], &wordsAccessed[wordIndex], sizeof(WordCount));
+        printf("Shared Memory Write -> Address: %p, Word: %s, Count: %d\n", 
+        &resultsPointer[t_index][wordIndex], &resultsPointer[t_index][wordIndex].word, 
+        &resultsPointer[t_index][wordIndex].countNum);
+    }
 }
 
 
@@ -111,6 +122,9 @@ int main(int argc, char* argv[])
     outputFile = argv[2];
     numOfInputFiles = atoi(argv[3]);
     inputFileNames = &argv[4];
+
+    WordCount threadResults[numOfInputFiles][k];
+    resultsPointer = &threadResults;
 
     for(int tIndex = 0; tIndex < numOfInputFiles; tIndex++){
         strcpy(t_args[tIndex].fileName, inputFileNames[tIndex]);
