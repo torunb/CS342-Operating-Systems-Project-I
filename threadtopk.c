@@ -34,10 +34,10 @@ int compareWordCountFreq(const void* wordCount1, const void* wordCount2){
 }
 
 /* The function to be executed concurrently by all the threads */
-static void *processFile(char* fileName, int k)
+static void *processFile(void *arg_ptr)
 {
     FILE* filePtr;
-    filePtr = fopen(fileName, "r");
+    filePtr = fopen(((struct arg *) arg_ptr)->fileName, "r");
 
     if(filePtr == NULL)
     {
@@ -144,6 +144,6 @@ int main(int argc, char* argv[])
 
 	printf("main: all threads terminated\n");
     //main thread execution 
-    
+
 	return 0;
 }
