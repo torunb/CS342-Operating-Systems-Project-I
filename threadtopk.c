@@ -91,8 +91,8 @@ static void *processFile(void *arg_ptr)
     for(int wordIndex = 0; wordIndex < k; wordIndex++){
         memcpy(&resultsPointer[t_index][wordIndex], &wordsAccessed[wordIndex], sizeof(WordCount));
         printf("Shared Memory Write -> Address: %p, Word: %s, Count: %d\n", 
-        &resultsPointer[t_index][wordIndex], &resultsPointer[t_index][wordIndex].word, 
-        &resultsPointer[t_index][wordIndex].countNum);
+        &resultsPointer[t_index][wordIndex], resultsPointer[t_index][wordIndex].word, 
+        resultsPointer[t_index][wordIndex].countNum);
     }
 }
 
@@ -164,7 +164,9 @@ int main(int argc, char* argv[])
 
     for(int threadIndex = 0; threadIndex < numOfInputFiles; threadIndex++){
         for(int arrIndex = 0; arrIndex < k; arrIndex++){
-
+            printf("Shared Memory Write -> Address: %p, Word: %s, Count: %d\n", 
+            &threadResults[threadIndex][arrIndex], threadResults[threadIndex][arrIndex].word, 
+            threadResults[threadIndex][arrIndex].countNum);
             int isWordExist = 0;
 
             for(int j = 0; j < wordsProcessedNum; j++){
