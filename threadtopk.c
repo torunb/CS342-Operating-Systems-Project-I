@@ -33,7 +33,15 @@ struct arg {
 int compareWordCountFreq(const void* wordCount1, const void* wordCount2){
     const WordCount* word1 = (const WordCount*) wordCount1;
     const WordCount* word2 = (const WordCount*) wordCount2;
-    return word2->countNum - word1->countNum;
+    if(word1->countNum != word2->countNum)
+    {
+        return word2->countNum - word1->countNum;
+    }
+    else
+    {
+        int comparison = strcmp(word1->word, word2->word);
+        return comparison;
+    }
 }
 
 /* The function to be executed concurrently by all the threads */
