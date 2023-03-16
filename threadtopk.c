@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
     /* the 'k' in the top-k words with the higest frequency */ 
     int k;
     /* the name of the output file */
-    char* outputFile;
+    char* outfile;
 
     int ret;
     char* retmsg;
@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
     }
 
     k = atoi(argv[1]);
-    outputFile = argv[2];
+    outfile = argv[2];
     numOfInputFiles = atoi(argv[3]);
     inputFileNames = &argv[4];
 
@@ -157,7 +157,42 @@ int main(int argc, char* argv[])
 	}
 
 	printf("main: all threads terminated\n");
-    //main thread execution 
 
-	return 0;
+    int wordsProcessedSize = numOfInputFiles * k; 
+    WordCount wordsProcessed[wordsProcessedSize];
+    int wordsProcessedNum = 0;
+
+    for(int threadIndex = 0; threadIndex < numOfInputFiles; threadIndex++){
+        for(int arrIndex = 0; arrIndex < k; arrIndex++){
+
+            int isWordExist = 0;
+
+            for(int j = 0; j < wordsProcessedNum; j++){
+                if(strcmp(threadResults[threadIndex][arrIndex].word,wordsProcessed[j].word) == 0){
+                    isWordExist = 1;
+                    wordsProcessed[j].countNum += threadResults[threadIndex][arrIndex].countNum;
+                    break;
+                }
+            }
+            if(isWordExist == 0) {
+                memcpy(&wordsProcessed[wordsProcessedNum], &threadResults[threadIndex][arrIndex], sizeof(WordCount));
+                wordsProcessedNum++;
+            }
+        }
+    }
+
+    /* sort the words processed struct array in descending order */
+    qsort(wordsProcessed,wordsProcessedNum,sizeof(WordCount),compareWordCountFreq);
+
+    FILE* out = fopen(outfile, "w");
+
+    for(int i = 0; i < k; i++){
+        fprintf(out, "%s", wordsProcessed[i].word);
+        fprintf(out, " %d\n", wordsProcessed[i].countNum);
+    }
+
+    fclose(out); 
+    
+	exit(0);
+    return(0);
 }
