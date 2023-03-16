@@ -76,8 +76,17 @@ void processFile(char* fileName, WordCount *shmPosition, int k) {
         }
     }
 
+    int unfilledKVals = numberOfWords;
+    while(unfilledKVals < k){
+        WordCount wordNew; 
+        strcpy(wordNew.word, "");
+        wordNew.countNum = 0;
+        wordsAccessed[unfilledKVals] = wordNew;
+        unfilledKVals++;
+    }
+
     /* sort the word accessed struct array in descending order */
-    qsort(wordsAccessed,numberOfWords,sizeof(WordCount),compareWordCountFreq);
+    qsort(wordsAccessed,k,sizeof(WordCount),compareWordCountFreq);
 
     /* write the top-k words into the shared memory */
     for(int wordIndex = 0; wordIndex < k; wordIndex++){
@@ -153,6 +162,9 @@ int main(int argc, char *argv[]){
     WordCount* shmStartPosition = (WordCount*) shmStart;
 
     for(int procWordIndex = 0; procWordIndex < wordsProcessedSize; procWordIndex++){
+        if(shmStartPosition[procWordIndex].countNum <= 0){
+            continue;
+        }
         printf("Shared Memory Read -> Address: %p, Word: %s, Count: %d\n", &shmStartPosition[procWordIndex], shmStartPosition[procWordIndex].word, shmStartPosition[procWordIndex].countNum);
         int isWordExist = 0;
 

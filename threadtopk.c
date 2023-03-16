@@ -84,8 +84,17 @@ static void *processFile(void *arg_ptr)
         }
     }
 
+    int unfilledKVals = numberOfWords;
+    while(unfilledKVals < k){
+        WordCount wordNew; 
+        strcpy(wordNew.word, "");
+        wordNew.countNum = 0;
+        wordsAccessed[unfilledKVals] = wordNew;
+        unfilledKVals++;
+    }
+
     /* sort the word accessed struct array in descending order */
-    qsort(wordsAccessed,numberOfWords,sizeof(WordCount),compareWordCountFreq);
+    qsort(wordsAccessed,k,sizeof(WordCount),compareWordCountFreq);
 
     /* write the top-k words into the shared memory */
     for(int wordIndex = 0; wordIndex < k; wordIndex++){
@@ -164,6 +173,9 @@ int main(int argc, char* argv[])
 
     for(int threadIndex = 0; threadIndex < numOfInputFiles; threadIndex++){
         for(int arrIndex = 0; arrIndex < k; arrIndex++){
+            if(threadResults[threadIndex][arrIndex].countNum <= 0){
+                continue;
+            }
             printf("Shared Memory Write -> Address: %p, Word: %s, Count: %d\n", 
             &threadResults[threadIndex][arrIndex], threadResults[threadIndex][arrIndex].word, 
             threadResults[threadIndex][arrIndex].countNum);
