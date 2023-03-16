@@ -86,7 +86,7 @@ void processFile(char* fileName, WordCount *shmPosition, int k) {
     }
 
     /* sort the word accessed struct array in descending order */
-    qsort(wordsAccessed,k,sizeof(WordCount),compareWordCountFreq);
+    qsort(wordsAccessed,numberOfWords,sizeof(WordCount),compareWordCountFreq);
 
     /* write the top-k words into the shared memory */
     for(int wordIndex = 0; wordIndex < k; wordIndex++){
