@@ -93,6 +93,8 @@ void processFile(char* fileName, WordCount *shmPosition, int k) {
         memcpy(&shmPosition[wordIndex], &wordsAccessed[wordIndex], sizeof(WordCount));
         printf("Shared Memory Write -> Address: %p, Word: %s, Count: %d\n", &shmPosition[wordIndex], shmPosition[wordIndex].word, shmPosition[wordIndex].countNum);
     }
+    
+    fclose(filePtr);
 }
 
 int main(int argc, char *argv[]){

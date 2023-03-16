@@ -19,7 +19,7 @@ typedef struct {
     int countNum;
 } WordCount;
 
-WordCount **resultsPointer;
+WordCount threadResults[MAX_NO_OF_FILES][MAX_NO_OF_WORDS];
 
 struct arg {
     /* name of the file that is processed */
@@ -98,11 +98,13 @@ static void *processFile(void *arg_ptr)
 
     /* write the top-k words into the shared memory */
     for(int wordIndex = 0; wordIndex < k; wordIndex++){
-        memcpy(&resultsPointer[t_index][wordIndex], &wordsAccessed[wordIndex], sizeof(WordCount));
+        memcpy(&threadResults[t_index][wordIndex], &wordsAccessed[wordIndex], sizeof(WordCount));
         printf("Shared Memory Write -> Address: %p, Word: %s, Count: %d\n", 
-        &resultsPointer[t_index][wordIndex], resultsPointer[t_index][wordIndex].word, 
-        resultsPointer[t_index][wordIndex].countNum);
+        &threadResults[t_index][wordIndex], threadResults[t_index][wordIndex].word, 
+        threadResults[t_index][wordIndex].countNum);
     }
+    fclose(filePtr);
+    pthread_exit(NULL);
 }
 
 
@@ -131,9 +133,6 @@ int main(int argc, char* argv[])
     outfile = argv[2];
     numOfInputFiles = atoi(argv[3]);
     inputFileNames = &argv[4];
-
-    WordCount threadResults[numOfInputFiles][k];
-    resultsPointer = &threadResults;
 
     for(int tIndex = 0; tIndex < numOfInputFiles; tIndex++){
         strcpy(t_args[tIndex].fileName, inputFileNames[tIndex]);
@@ -176,7 +175,7 @@ int main(int argc, char* argv[])
             if(threadResults[threadIndex][arrIndex].countNum <= 0){
                 continue;
             }
-            printf("Shared Memory Write -> Address: %p, Word: %s, Count: %d\n", 
+            printf("Shared Memory Read -> Address: %p, Word: %s, Count: %d\n", 
             &threadResults[threadIndex][arrIndex], threadResults[threadIndex][arrIndex].word, 
             threadResults[threadIndex][arrIndex].countNum);
             int isWordExist = 0;
