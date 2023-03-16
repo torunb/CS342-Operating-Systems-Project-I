@@ -19,9 +19,12 @@ typedef struct {
 } WordCount;
 
 struct arg {
-	int min;			// min value
-	int max;			// max value
-	int t_index;    // the index of the created thread
+    /* name of the file that is processed */
+    char fileName[MAX_WORD_SIZE];
+    /* the 'k' in the top-k word with the highest frequency */
+    int k;
+    /* the index of the created thread */
+	int t_index;
 };
 
 int compareWordCountFreq(const void* wordCount1, const void* wordCount2){
@@ -30,7 +33,8 @@ int compareWordCountFreq(const void* wordCount1, const void* wordCount2){
     return word2->countNum - word1->countNum;
 }
 
-void processFile(char* fileName, int k)
+/* The function to be executed concurrently by all the threads */
+static void *processFile(char* fileName, int k)
 {
     FILE* filePtr;
     filePtr = fopen(fileName, "r");
@@ -84,15 +88,19 @@ void processFile(char* fileName, int k)
 
 int main(int argc, char* argv[])
 {
-    pthread_t tids[MAX_NO_OF_FILES]; // thread ids
-
+    /* the thread ids */
+    pthread_t tids[MAX_NO_OF_FILES];
+    /* the number of threads */
     int numOfInputFiles;
-    int k;
-    char* outputFile; // name of the output file
-    
+    /* thread function arguments (the parameters to the function) */
     struct arg t_args[MAX_NO_OF_FILES];
+    /* the 'k' in the top-k words with the higest frequency */ 
+    int k;
+    /* the name of the output file */
+    char* outputFile;
 
     int ret;
+    char* retmsg;
 
     if(argc < 5)
     {
@@ -100,16 +108,42 @@ int main(int argc, char* argv[])
     }
 
     k = atoi(argv[1]);
-    numOfInputFiles = atoi(argv[3]);
     outputFile = argv[2];
+    numOfInputFiles = atoi(argv[3]);
     inputFileNames = &argv[4];
 
-    int numberOfThreads = numOfInputFiles;
+    for(int tIndex = 0; tIndex < numOfInputFiles; tIndex++){
+        strcpy(t_args[tIndex].fileName, inputFileNames[tIndex]);
+        t_args[tIndex].k = k;
+        t_args[tIndex].t_index = tIndex;
 
-    for(int i = 0; i < numberOfThreads; i++)
-    {
+        ret = pthread_create(&(tids[tIndex]),
+				     NULL, processFile, (void *) &(t_args[tIndex]));
 
+        if (ret != 0){
+            printf("thread create failed \n");
+			exit(1);
+        }
+        printf("thread %i with tid %u created\n", tIndex,
+		       (unsigned int) tids[tIndex]);
     }
 
+    printf("main: waiting all threads to terminate\n");
+	for (int tIndex = 0; tIndex < numOfInputFiles; tIndex++) {
+	    ret = pthread_join(tids[tIndex], (void **)&retmsg);
+		if (ret != 0) {
+			printf("thread join failed \n");
+			exit(1);
+		}
+		printf ("thread terminated, msg = %s\n", retmsg);
+		// we got the reason as the string pointed by retmsg.
+		// space for that was allocated in thread function.
+        // now we are freeing the allocated space.
+		free (retmsg);
+	}
 
+	printf("main: all threads terminated\n");
+    //main thread execution 
+    
+	return 0;
 }
