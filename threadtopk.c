@@ -122,7 +122,6 @@ int main(int argc, char* argv[])
     char* outfile;
 
     int ret;
-    char* retmsg;
 
     if(argc < 5)
     {
@@ -143,28 +142,16 @@ int main(int argc, char* argv[])
 				     NULL, processFile, (void *) &(t_args[tIndex]));
 
         if (ret != 0){
-            printf("thread create failed \n");
 			exit(1);
         }
-        printf("thread %i with tid %u created\n", tIndex,
-		       (unsigned int) tids[tIndex]);
     }
 
-    printf("main: waiting all threads to terminate\n");
 	for (int tIndex = 0; tIndex < numOfInputFiles; tIndex++) {
-	    ret = pthread_join(tids[tIndex], (void **)&retmsg);
+	    ret = pthread_join(tids[tIndex], NULL);
 		if (ret != 0) {
-			printf("thread join failed \n");
 			exit(1);
 		}
-		printf ("thread terminated, msg = %s\n", retmsg);
-		// we got the reason as the string pointed by retmsg.
-		// space for that was allocated in thread function.
-        // now we are freeing the allocated space.
-		free (retmsg);
 	}
-
-	printf("main: all threads terminated\n");
 
     int wordsProcessedSize = numOfInputFiles * k; 
     WordCount wordsProcessed[wordsProcessedSize];
