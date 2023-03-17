@@ -50,7 +50,6 @@ void processFile(char* fileName, WordCount *shmPosition, int k) {
 
     if(filePtr == NULL)
     {
-        printf("File cannot be opened: %s\n", fileName);
         exit(1);
     }
 
@@ -67,7 +66,7 @@ void processFile(char* fileName, WordCount *shmPosition, int k) {
         int isPreviouslyScanned = 0;
 
         /* convert word to all upper case */
-         for(int i = 0; i < strlen(currentWord); i++)
+        for(int i = 0; i < strlen(currentWord); i++)
         {
             currentWord[i] = toupper(currentWord[i]); // make all the words upper case
         }
@@ -104,7 +103,7 @@ void processFile(char* fileName, WordCount *shmPosition, int k) {
     /* write the top-k words into the shared memory */
     for(int wordIndex = 0; wordIndex < k; wordIndex++){
         memcpy(&shmPosition[wordIndex], &wordsAccessed[wordIndex], sizeof(WordCount));
-        printf("Shared Memory Write -> Address: %p, Word: %s, Count: %d\n", &shmPosition[wordIndex], shmPosition[wordIndex].word, shmPosition[wordIndex].countNum);
+        //printf("Shared Memory Write -> Address: %p, Word: %s, Count: %d\n", &shmPosition[wordIndex], shmPosition[wordIndex].word, shmPosition[wordIndex].countNum);
     }
     
     fclose(filePtr);
@@ -184,7 +183,7 @@ int main(int argc, char *argv[]){
         if(shmStartPosition[procWordIndex].countNum <= 0){
             continue;
         }
-        printf("Shared Memory Read -> Address: %p, Word: %s, Count: %d\n", &shmStartPosition[procWordIndex], shmStartPosition[procWordIndex].word, shmStartPosition[procWordIndex].countNum);
+        //printf("Shared Memory Read -> Address: %p, Word: %s, Count: %d\n", &shmStartPosition[procWordIndex], shmStartPosition[procWordIndex].word, shmStartPosition[procWordIndex].countNum);
         int isWordExist = 0;
 
         for(int j = 0; j < wordsProcessedNum; j++){

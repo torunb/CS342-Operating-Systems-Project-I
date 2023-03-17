@@ -110,9 +110,9 @@ static void *processFile(void *arg_ptr)
     /* write the top-k words into the shared memory */
     for(int wordIndex = 0; wordIndex < k; wordIndex++){
         memcpy((resultsPointer + (t_index * k) + wordIndex), &wordsAccessed[wordIndex], sizeof(WordCount));
-        printf("Shared Memory Write -> Address: %p, Word: %s, Count: %d\n", 
-        (resultsPointer + (t_index * k) + wordIndex), (resultsPointer + (t_index * k) + wordIndex)->word, 
-        (resultsPointer + (t_index * k) + wordIndex)->countNum);
+        // printf("Shared Memory Write -> Address: %p, Word: %s, Count: %d\n", 
+        // (resultsPointer + (t_index * k) + wordIndex), (resultsPointer + (t_index * k) + wordIndex)->word, 
+        // (resultsPointer + (t_index * k) + wordIndex)->countNum);
     }
     fclose(filePtr);
     pthread_exit(NULL);
@@ -179,9 +179,9 @@ int main(int argc, char* argv[])
             if(threadResults[threadIndex][arrIndex].countNum <= 0){
                 continue;
             }
-            printf("Shared Memory Read -> Address: %p, Word: %s, Count: %d\n", 
-            &threadResults[threadIndex][arrIndex], threadResults[threadIndex][arrIndex].word, 
-            threadResults[threadIndex][arrIndex].countNum);
+            // printf("Shared Memory Read -> Address: %p, Word: %s, Count: %d\n", 
+            // &threadResults[threadIndex][arrIndex], threadResults[threadIndex][arrIndex].word, 
+            // threadResults[threadIndex][arrIndex].countNum);
             int isWordExist = 0;
 
             for(int j = 0; j < wordsProcessedNum; j++){
