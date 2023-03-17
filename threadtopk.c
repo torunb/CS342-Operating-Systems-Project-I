@@ -6,11 +6,14 @@
 #include <unistd.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/time.h>
 
 #define MAX_WORD_SIZE 64
 #define MAX_NO_OF_WORDS 1000
 #define MAX_NO_OF_FILES 10
 
+/* timeval for measure the time of the program*/
+struct timeval tv1, tv2; 
 
 char** inputFileNames;
 
@@ -118,6 +121,9 @@ static void *processFile(void *arg_ptr)
 
 int main(int argc, char* argv[])
 {
+    /* get the time start of the execution*/
+    gettimeofday(&tv1, 0);
+
     /* the thread ids */
     pthread_t tids[MAX_NO_OF_FILES];
     /* the number of threads */
@@ -204,6 +210,14 @@ int main(int argc, char* argv[])
 
     fclose(out); 
     
+    /* get time after the end of execution*/
+    gettimeofday(&tv2, 0);
+
+    /* print the time result of the execution*/
+    printf("%s", "Time that takes program to execute (threadtopk): ");
+    printf("%li", tv2.tv_sec - tv1.tv_sec);
+    printf("%s\n", "seconds");
+
 	exit(0);
     return(0);
 }

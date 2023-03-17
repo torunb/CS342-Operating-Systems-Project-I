@@ -10,10 +10,14 @@
 #include <sys/mman.h>
 #include <sys/wait.h>
 #include <ctype.h>
+#include <sys/time.h>
 
 #define MAX_WORD_SIZE 64
 #define MAX_NO_OF_WORDS 1000
 #define MAX_NO_OF_FILES 10
+
+/* timeval for measure the time of the program*/
+struct timeval tv1, tv2; 
 
 typedef struct {
     char word[MAX_WORD_SIZE];
@@ -107,6 +111,10 @@ void processFile(char* fileName, WordCount *shmPosition, int k) {
 }
 
 int main(int argc, char *argv[]){
+
+    /* get the time start of the execution*/
+    gettimeofday(&tv1, 0);
+
     pid_t pid_n;
     /* number of highest frequency words to be found in a file */
     int k;
@@ -206,6 +214,14 @@ int main(int argc, char *argv[]){
 
     close(shmFd);
     shm_unlink(shmName);
+
+    /* get time after the end of execution*/
+    gettimeofday(&tv2, 0);
+
+    /* print the time result of the execution*/
+    printf("%s", "Time that takes program to execute (threadtopk): ");
+    printf("%li", tv2.tv_sec - tv1.tv_sec);
+    printf("%s\n", "seconds");
 
     exit(0);
     return(0);
