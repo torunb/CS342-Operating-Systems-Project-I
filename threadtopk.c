@@ -215,8 +215,10 @@ int main(int argc, char* argv[])
 
     /* print the time result of the execution*/
     printf("%s", "Time that takes program to execute (threadtopk): ");
-    printf("%li", tv2.tv_sec - tv1.tv_sec);
-    printf("%s\n", "seconds");
+    printf("%li ", tv2.tv_sec - tv1.tv_sec);
+    printf("%s", "seconds and ");
+    printf("%li ", tv2.tv_usec - tv1.tv_usec);
+    printf("%s\n", "miliseconds");
 
 	exit(0);
     return(0);
