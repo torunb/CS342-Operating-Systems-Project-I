@@ -9,7 +9,7 @@
 #include <sys/time.h>
 
 #define MAX_WORD_SIZE 64
-#define MAX_NO_OF_WORDS 1000
+#define MAX_NO_OF_WORDS 100000
 #define MAX_NO_OF_FILES 10
 
 /* timeval for measure the time of the program*/
@@ -73,7 +73,7 @@ static void *processFile(void *arg_ptr)
         int isPreviouslyScanned = 0;
 
         /* convert word to all upper case */
-         for(int i = 0; i < strlen(currentWord); i++)
+        for(int i = 0; i < strlen(currentWord); i++)
         {
             currentWord[i] = toupper(currentWord[i]); // make all the words upper case
         }
@@ -203,7 +203,13 @@ int main(int argc, char* argv[])
 
     FILE* out = fopen(outfile, "w");
 
-    for(int i = 0; i < k; i++){
+    int totalCountNum = k;
+    if(wordsProcessedNum < k){
+        totalCountNum = wordsProcessedNum;
+    }
+
+
+    for(int i = 0; i < totalCountNum; i++){
         fprintf(out, "%s", wordsProcessed[i].word);
         fprintf(out, " %d\n", wordsProcessed[i].countNum);
     }
@@ -218,7 +224,7 @@ int main(int argc, char* argv[])
     printf("%li ", tv2.tv_sec - tv1.tv_sec);
     printf("%s", "seconds and ");
     printf("%li ", tv2.tv_usec - tv1.tv_usec);
-    printf("%s\n", "miliseconds");
+    printf("%s\n", "microseconds");
 
 	exit(0);
     return(0);
