@@ -13,7 +13,7 @@
 #include <sys/time.h>
 
 #define MAX_WORD_SIZE 64
-#define MAX_NO_OF_WORDS 10000
+#define MAX_NO_OF_WORDS 100000
 #define MAX_NO_OF_FILES 10
 
 /* timeval for measure the time of the program*/
