@@ -110,9 +110,6 @@ static void *processFile(void *arg_ptr)
     /* write the top-k words into the shared memory */
     for(int wordIndex = 0; wordIndex < k; wordIndex++){
         memcpy((resultsPointer + (t_index * k) + wordIndex), &wordsAccessed[wordIndex], sizeof(WordCount));
-        // printf("Shared Memory Write -> Address: %p, Word: %s, Count: %d\n", 
-        // (resultsPointer + (t_index * k) + wordIndex), (resultsPointer + (t_index * k) + wordIndex)->word, 
-        // (resultsPointer + (t_index * k) + wordIndex)->countNum);
     }
     fclose(filePtr);
     pthread_exit(NULL);
@@ -179,9 +176,6 @@ int main(int argc, char* argv[])
             if(threadResults[threadIndex][arrIndex].countNum <= 0){
                 continue;
             }
-            // printf("Shared Memory Read -> Address: %p, Word: %s, Count: %d\n", 
-            // &threadResults[threadIndex][arrIndex], threadResults[threadIndex][arrIndex].word, 
-            // threadResults[threadIndex][arrIndex].countNum);
             int isWordExist = 0;
 
             for(int j = 0; j < wordsProcessedNum; j++){
@@ -220,11 +214,11 @@ int main(int argc, char* argv[])
     gettimeofday(&tv2, 0);
 
     /* print the time result of the execution*/
-    printf("%s", "Time that takes program to execute (threadtopk): ");
-    printf("%li ", tv2.tv_sec - tv1.tv_sec);
-    printf("%s", "seconds and ");
-    printf("%li ", tv2.tv_usec - tv1.tv_usec);
-    printf("%s\n", "microseconds");
+    // printf("%s", "Time that takes program to execute (threadtopk): ");
+    // printf("%li ", tv2.tv_sec - tv1.tv_sec);
+    // printf("%s", "seconds and ");
+    // printf("%li ", tv2.tv_usec - tv1.tv_usec);
+    // printf("%s\n", "microseconds");
 
 	exit(0);
     return(0);

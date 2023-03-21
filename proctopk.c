@@ -103,7 +103,6 @@ void processFile(char* fileName, WordCount *shmPosition, int k) {
     /* write the top-k words into the shared memory */
     for(int wordIndex = 0; wordIndex < k; wordIndex++){
         memcpy(&shmPosition[wordIndex], &wordsAccessed[wordIndex], sizeof(WordCount));
-        //printf("Shared Memory Write -> Address: %p, Word: %s, Count: %d\n", &shmPosition[wordIndex], shmPosition[wordIndex].word, shmPosition[wordIndex].countNum);
     }
     
     fclose(filePtr);
@@ -183,7 +182,6 @@ int main(int argc, char *argv[]){
         if(shmStartPosition[procWordIndex].countNum <= 0){
             continue;
         }
-        //printf("Shared Memory Read -> Address: %p, Word: %s, Count: %d\n", &shmStartPosition[procWordIndex], shmStartPosition[procWordIndex].word, shmStartPosition[procWordIndex].countNum);
         int isWordExist = 0;
 
         for(int j = 0; j < wordsProcessedNum; j++){
@@ -223,11 +221,11 @@ int main(int argc, char *argv[]){
     gettimeofday(&tv2, 0);
 
     /* print the time result of the execution*/
-    printf("%s", "Time that takes program to execute (proctopk): ");
-    printf("%li ", tv2.tv_sec - tv1.tv_sec);
-    printf("%s", "seconds and ");
-    printf("%li ", tv2.tv_usec - tv1.tv_usec);
-    printf("%s\n", "microseconds");
+    // printf("%s", "Time that takes program to execute (proctopk): ");
+    // printf("%li ", tv2.tv_sec - tv1.tv_sec);
+    // printf("%s", "seconds and ");
+    // printf("%li ", tv2.tv_usec - tv1.tv_usec);
+    // printf("%s\n", "microseconds");
 
     exit(0);
     return(0);
