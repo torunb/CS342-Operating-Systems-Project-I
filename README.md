@@ -3,7 +3,7 @@ CS342 Operating Systems - Spring 2023 - Project #1 - Processes, IPC, and Threads
 Application that finds the K most frequently ocurring words, top-K words, in a given input data set. There are two parts. First part uses processes to process data set, and second part uses threads to process data sets.
 
 # How To Execute
-To compile programs type **_make_**. Then your decision type,
+To compile programs type **_make_**. Then on your decision type,
 
 **proctopk/threadtopk K outputfile infile1 ... infileN**
 
