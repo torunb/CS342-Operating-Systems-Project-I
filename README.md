@@ -4,6 +4,7 @@ Application that finds the K most frequently ocurring words, top-K words, in a g
 
 # How To Execute
 To compile programs type __make__. Then on your decision type,
+
 proctopk/threadtopk <K> <outputfile> <N> <infile1> .... <infileN>
 
 # Team Members
